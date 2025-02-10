@@ -1,13 +1,7 @@
-﻿using NAudio.Wave.SampleProviders;
-using NAudio.Wave;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using MultiCodecPlayer.CustomWaveProvider;
+﻿using NAudio.Wave;
+using NAudio.Wave.SampleProviders;
 
-namespace MultiCodecPlayer.CustomWaveProvider
+namespace AudioMultiCodecPlayer.CustomWaveProvider
 {
     public class CustomAudioFileReader : WaveStream, CustomBaseProvider
     {

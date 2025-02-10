@@ -1,21 +1,10 @@
-﻿using MikouTools;
-using MikouTools.ThreadTools;
+﻿using AudioMultiCodecPlayer.CustomWaveProvider;
+using AudioMultiCodecPlayer.Helper;
 using MikouTools.UtilityTools.Threading;
-using MultiCodecPlayer.CustomWaveProvider;
-using MultiCodecPlayer.Helper;
 using NAudio.CoreAudioApi;
-using NAudio.CoreAudioApi.Interfaces;
 using NAudio.Wave;
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
 
-namespace MultiCodecPlayer
+namespace AudioMultiCodecPlayer
 {
     public partial class Player : IDisposable
     {
@@ -172,7 +161,7 @@ namespace MultiCodecPlayer
 
                 wasapiOut = new WasapiOut(_mMDeviceHelper.MMDevice, AudioClientShareMode.Shared, true, 200);
                 wasapiOut.Init(Provider);
-                wasapiOut.PlaybackStopped += (s,e) => { if (CurrentSeconds >= Provider.TotleTime.TotalSeconds) AudioEnd?.Invoke(); AudioStop?.Invoke(); };
+                wasapiOut.PlaybackStopped += (s,e) => { if (_state.Value != PlayerState.Dispose && CurrentSeconds >= Provider.TotleTime.TotalSeconds) AudioEnd?.Invoke(); AudioStop?.Invoke(); };
                 playbackState_ = playbackState;
                 switch (playbackState)
                 {
@@ -183,8 +172,9 @@ namespace MultiCodecPlayer
                         wasapiOut.Pause();
                         break;
                 }
-                AudioOpen?.Invoke();
+
             });
+            AudioOpen?.Invoke();
         }
 
         public void Play() => PlaybackState = PlaybackState.Playing;

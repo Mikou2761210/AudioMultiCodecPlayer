@@ -1,11 +1,6 @@
 ﻿using NAudio.Wave;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace MultiCodecPlayer.CustomWaveProvider
+namespace AudioMultiCodecPlayer.CustomWaveProvider
 {
     public interface CustomBaseProvider : IWaveProvider, IDisposable
     {

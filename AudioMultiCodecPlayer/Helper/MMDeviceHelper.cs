@@ -2,18 +2,9 @@
 using MikouTools.UtilityTools.Threading;
 using NAudio.CoreAudioApi;
 using NAudio.CoreAudioApi.Interfaces;
-using NAudio.Wave;
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
-using static MultiCodecPlayer.Player;
+using static AudioMultiCodecPlayer.Player;
 
-namespace MultiCodecPlayer.Helper
+namespace AudioMultiCodecPlayer.Helper
 {
     internal enum MMDeviceHelperState
     {
@@ -49,7 +40,7 @@ namespace MultiCodecPlayer.Helper
                 });
 
                 if (_deviceEnumerator == null) throw new NullReferenceException(nameof(_deviceEnumerator));
-
+                _state.AccessValueWhileLocked = MMDeviceHelperState.None;
                 AudioDeviceMode = PlayerAudioDeviceMode.Auto;
 
 
@@ -66,7 +57,6 @@ namespace MultiCodecPlayer.Helper
             }
             finally
             {
-                _state.AccessValueWhileLocked = MMDeviceHelperState.None;
                 _state.UnLock();
             }
         }

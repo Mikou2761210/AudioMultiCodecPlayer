@@ -1,20 +1,10 @@
 ﻿using Concentus;
 using Concentus.Oggfile;
-using Concentus.Structs;
-using MultiCodecPlayer.Helper;
-using NAudio.Wave;
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using static System.Runtime.InteropServices.JavaScript.JSType;
-using MultiCodecPlayer.CustomWaveProvider;
 using MikouTools.CollectionTools.ThreadSafeCollections;
+using NAudio.Wave;
+using System.Diagnostics;
 
-namespace MultiCodecPlayer.CustomWaveProvider
+namespace AudioMultiCodecPlayer.CustomWaveProvider
 {
     internal class OpusProvider : CustomBaseProvider
     {
