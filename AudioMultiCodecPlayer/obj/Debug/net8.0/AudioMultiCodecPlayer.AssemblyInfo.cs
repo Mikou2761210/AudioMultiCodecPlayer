@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("AudioMultiCodecPlayer")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+e6fe66b7ae525a587fa4ac0f49a4e62110ac13c4")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+ed10071acfb4688f7419a1be50fb967f69179d81")]
 [assembly: System.Reflection.AssemblyProductAttribute("AudioMultiCodecPlayer")]
 [assembly: System.Reflection.AssemblyTitleAttribute("AudioMultiCodecPlayer")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

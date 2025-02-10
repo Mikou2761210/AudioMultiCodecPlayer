@@ -136,18 +136,13 @@ namespace AudioMultiCodecPlayer.CustomWaveProvider
                 {
                     while (decodingThreadRunning)
                     {
-                        Debug.WriteLine($"1");
                         lock (DecodingLock)
                         {
-                            Debug.WriteLine($"2");
-                            Debug.WriteLine($" {opusOggRead.HasNextPacket}   {tempAudioData.Count} <= {tempAudioDataCapacty}");
                             while (opusOggRead.HasNextPacket && tempAudioData.Count <= tempAudioDataCapacty)
                             {
-                                Debug.WriteLine($"3");
                                 short[] packet = opusOggRead.DecodeNextPacket();
                                 if (packet != null)
                                 {
-                                    Debug.WriteLine($"4");
                                     byte[] packetBytes = new byte[packet.Length * 2];
                                     Buffer.BlockCopy(packet, 0, packetBytes, 0, packetBytes.Length);
                                     tempAudioData.AddRange(packetBytes);
@@ -158,9 +153,7 @@ namespace AudioMultiCodecPlayer.CustomWaveProvider
                                 }
                             }
                         }
-                        Debug.WriteLine("wait");
-                        decodingEvent.WaitOne(); // Signalを待つ
-                        Debug.WriteLine("start");
+                        decodingEvent.WaitOne();
                     }
                 });
                 decodingThread.IsBackground = true;
@@ -175,14 +168,14 @@ namespace AudioMultiCodecPlayer.CustomWaveProvider
             if(decodingThread == null || !decodingThread.IsAlive)
                 StartDecodingThread();
             else
-                decodingEvent.Set(); // Signalを送信
+                decodingEvent.Set();
         }
 
         public void StopDecodingThread()
         {
             decodingThreadRunning = false;
-            decodingEvent.Set(); // スレッドを停止させる
-            decodingThread?.Join(); // 終了を待機
+            decodingEvent.Set(); 
+            decodingThread?.Join();
         }
 
 
