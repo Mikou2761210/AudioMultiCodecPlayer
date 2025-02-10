@@ -1,0 +1,16 @@
+F:\.ProgramRelated\Visual Studio\Program Folder\.DLL\AudioMultiCodecPlayer\AudioMultiCodecPlayer\bin\Debug\net8.0\AudioMultiCodecPlayer.deps.json
+F:\.ProgramRelated\Visual Studio\Program Folder\.DLL\AudioMultiCodecPlayer\AudioMultiCodecPlayer\bin\Debug\net8.0\AudioMultiCodecPlayer.dll
+F:\.ProgramRelated\Visual Studio\Program Folder\.DLL\AudioMultiCodecPlayer\AudioMultiCodecPlayer\bin\Debug\net8.0\AudioMultiCodecPlayer.pdb
+F:\.ProgramRelated\Visual Studio\Program Folder\.DLL\AudioMultiCodecPlayer\AudioMultiCodecPlayer\bin\Debug\net8.0\MikouTools.dll
+F:\.ProgramRelated\Visual Studio\Program Folder\.DLL\AudioMultiCodecPlayer\AudioMultiCodecPlayer\bin\Debug\net8.0\MikouTools.pdb
+F:\.ProgramRelated\Visual Studio\Program Folder\.DLL\AudioMultiCodecPlayer\AudioMultiCodecPlayer\obj\Debug\net8.0\AudioMultiCodecPlayer.csproj.AssemblyReference.cache
+F:\.ProgramRelated\Visual Studio\Program Folder\.DLL\AudioMultiCodecPlayer\AudioMultiCodecPlayer\obj\Debug\net8.0\AudioMultiCodecPlayer.GeneratedMSBuildEditorConfig.editorconfig
+F:\.ProgramRelated\Visual Studio\Program Folder\.DLL\AudioMultiCodecPlayer\AudioMultiCodecPlayer\obj\Debug\net8.0\AudioMultiCodecPlayer.AssemblyInfoInputs.cache
+F:\.ProgramRelated\Visual Studio\Program Folder\.DLL\AudioMultiCodecPlayer\AudioMultiCodecPlayer\obj\Debug\net8.0\AudioMultiCodecPlayer.AssemblyInfo.cs
+F:\.ProgramRelated\Visual Studio\Program Folder\.DLL\AudioMultiCodecPlayer\AudioMultiCodecPlayer\obj\Debug\net8.0\AudioMultiCodecPlayer.csproj.CoreCompileInputs.cache
+F:\.ProgramRelated\Visual Studio\Program Folder\.DLL\AudioMultiCodecPlayer\AudioMultiCodecPlayer\obj\Debug\net8.0\AudioMultiCodecPlayer.sourcelink.json
+F:\.ProgramRelated\Visual Studio\Program Folder\.DLL\AudioMultiCodecPlayer\AudioMultiCodecPlayer\obj\Debug\net8.0\AudioMul.F6D50CFD.Up2Date
+F:\.ProgramRelated\Visual Studio\Program Folder\.DLL\AudioMultiCodecPlayer\AudioMultiCodecPlayer\obj\Debug\net8.0\AudioMultiCodecPlayer.dll
+F:\.ProgramRelated\Visual Studio\Program Folder\.DLL\AudioMultiCodecPlayer\AudioMultiCodecPlayer\obj\Debug\net8.0\refint\AudioMultiCodecPlayer.dll
+F:\.ProgramRelated\Visual Studio\Program Folder\.DLL\AudioMultiCodecPlayer\AudioMultiCodecPlayer\obj\Debug\net8.0\AudioMultiCodecPlayer.pdb
+F:\.ProgramRelated\Visual Studio\Program Folder\.DLL\AudioMultiCodecPlayer\AudioMultiCodecPlayer\obj\Debug\net8.0\ref\AudioMultiCodecPlayer.dll

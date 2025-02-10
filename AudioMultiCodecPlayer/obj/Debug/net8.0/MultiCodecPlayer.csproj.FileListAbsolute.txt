@@ -1,0 +1,15 @@
+F:\.ProgramRelated\Visual Studio\Program Folder\.DLL\MultiCodecPlayer\MultiCodecPlayer\bin\Debug\net8.0\MultiCodecPlayer.deps.json
+F:\.ProgramRelated\Visual Studio\Program Folder\.DLL\MultiCodecPlayer\MultiCodecPlayer\bin\Debug\net8.0\MultiCodecPlayer.dll
+F:\.ProgramRelated\Visual Studio\Program Folder\.DLL\MultiCodecPlayer\MultiCodecPlayer\bin\Debug\net8.0\MultiCodecPlayer.pdb
+F:\.ProgramRelated\Visual Studio\Program Folder\.DLL\MultiCodecPlayer\MultiCodecPlayer\obj\Debug\net8.0\MultiCodecPlayer.csproj.AssemblyReference.cache
+F:\.ProgramRelated\Visual Studio\Program Folder\.DLL\MultiCodecPlayer\MultiCodecPlayer\obj\Debug\net8.0\MultiCodecPlayer.GeneratedMSBuildEditorConfig.editorconfig
+F:\.ProgramRelated\Visual Studio\Program Folder\.DLL\MultiCodecPlayer\MultiCodecPlayer\obj\Debug\net8.0\MultiCodecPlayer.AssemblyInfoInputs.cache
+F:\.ProgramRelated\Visual Studio\Program Folder\.DLL\MultiCodecPlayer\MultiCodecPlayer\obj\Debug\net8.0\MultiCodecPlayer.AssemblyInfo.cs
+F:\.ProgramRelated\Visual Studio\Program Folder\.DLL\MultiCodecPlayer\MultiCodecPlayer\obj\Debug\net8.0\MultiCodecPlayer.csproj.CoreCompileInputs.cache
+F:\.ProgramRelated\Visual Studio\Program Folder\.DLL\MultiCodecPlayer\MultiCodecPlayer\obj\Debug\net8.0\MultiCodecPlayer.dll
+F:\.ProgramRelated\Visual Studio\Program Folder\.DLL\MultiCodecPlayer\MultiCodecPlayer\obj\Debug\net8.0\refint\MultiCodecPlayer.dll
+F:\.ProgramRelated\Visual Studio\Program Folder\.DLL\MultiCodecPlayer\MultiCodecPlayer\obj\Debug\net8.0\MultiCodecPlayer.pdb
+F:\.ProgramRelated\Visual Studio\Program Folder\.DLL\MultiCodecPlayer\MultiCodecPlayer\obj\Debug\net8.0\ref\MultiCodecPlayer.dll
+F:\.ProgramRelated\Visual Studio\Program Folder\.DLL\MultiCodecPlayer\MultiCodecPlayer\bin\Debug\net8.0\MikouTools.dll
+F:\.ProgramRelated\Visual Studio\Program Folder\.DLL\MultiCodecPlayer\MultiCodecPlayer\bin\Debug\net8.0\MikouTools.pdb
+F:\.ProgramRelated\Visual Studio\Program Folder\.DLL\MultiCodecPlayer\MultiCodecPlayer\obj\Debug\net8.0\MultiCod.27F4DC1C.Up2Date

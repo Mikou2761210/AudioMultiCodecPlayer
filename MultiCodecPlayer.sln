@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.12.35506.116
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MultiCodecPlayer", "MultiCodecPlayer\MultiCodecPlayer.csproj", "{F0D43E08-6091-4C6E-9FE8-98E964F5B159}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AudioMultiCodecPlayer", "AudioMultiCodecPlayer\AudioMultiCodecPlayer.csproj", "{F0D43E08-6091-4C6E-9FE8-98E964F5B159}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
