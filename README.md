@@ -1,3 +1,5 @@
+The following text is written using a translation service. I apologize if there are any mistakes.
+
 The only class the user needs to use is basically Player.  
   
 ## How to Use Player  
