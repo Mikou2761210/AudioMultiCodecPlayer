@@ -17,5 +17,9 @@ TotleTime: Get the total playback duration.
 Setting AudioDeviceMode to Auto will automatically change the audio device when the PC's default audio device changes.  
 Setting AudioDeviceMode to Manual will prevent automatic changes, but the functionality to retrieve and set the audio device has not yet been implemented.  
 
+
 ## Note
-dependency:Naudio, Concentus, Concentus.Oggfile, MikouTools(https://github.com/Mikou2761210/MikouTools)
+
+Each event of the player occurs on a separate thread, and attempting to modify the UI from these events will result in an InvalidOperationException. To update the UI safely, use Dispatcher.Invoke or Dispatcher.BeginInvoke.
+
+Dependency:Naudio, Concentus, Concentus.Oggfile, MikouTools(https://github.com/Mikou2761210/MikouTools)
