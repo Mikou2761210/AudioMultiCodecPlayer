@@ -25,7 +25,7 @@ namespace AudioMultiCodecPlayer.CustomWaveProvider
         int DecodingThreshold;
         readonly public int SampleRate = 48000;
         readonly public int Channels = 2;
-
+        int _secondsDataCount;
 
 
         public OpusProvider(string filename)
@@ -37,9 +37,9 @@ namespace AudioMultiCodecPlayer.CustomWaveProvider
             opusDecoder = OpusCodecFactory.CreateDecoder(SampleRate, Channels);
             opusOggRead = new OpusOggReadStream(opusDecoder, opusStream);
 
-            int secondsdata = (SampleRate * 2/*(16 / 8)*/ * Channels);
-            tempAudioDataCapacty = secondsdata * 3;
-            DecodingThreshold = secondsdata * 2;
+            _secondsDataCount = (SampleRate * 2/*(16 / 8)*/ * Channels);
+            tempAudioDataCapacty = _secondsDataCount * 3;
+            DecodingThreshold = _secondsDataCount * 2;
             RequestDecoding();
         }
 
@@ -95,7 +95,7 @@ namespace AudioMultiCodecPlayer.CustomWaveProvider
         {
             get
             {
-                return opusOggRead.CurrentTime;
+                return TimeSpan.FromSeconds(opusOggRead.CurrentTime.TotalSeconds - (tempAudioData.Count / _secondsDataCount)) ;
             }
             set
             {
@@ -104,7 +104,7 @@ namespace AudioMultiCodecPlayer.CustomWaveProvider
                     if(value > opusOggRead.TotalTime)
                         value = opusOggRead.TotalTime;
                     if (value.TotalSeconds <= 0)
-                        value = TimeSpan.FromSeconds(0);
+                        value = TimeSpan.FromMilliseconds(1);
                     opusOggRead.SeekTo(value);
                     tempAudioData.Clear();
                     RequestDecoding();
@@ -164,7 +164,6 @@ namespace AudioMultiCodecPlayer.CustomWaveProvider
         Stopwatch  stopwatch = Stopwatch.StartNew();
         public void RequestDecoding()
         {
-            Debug.WriteLine(stopwatch.Elapsed);
             if(decodingThread == null || !decodingThread.IsAlive)
                 StartDecodingThread();
             else

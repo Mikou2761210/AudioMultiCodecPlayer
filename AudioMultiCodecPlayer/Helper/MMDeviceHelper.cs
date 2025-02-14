@@ -2,6 +2,8 @@
 using MikouTools.UtilityTools.Threading;
 using NAudio.CoreAudioApi;
 using NAudio.CoreAudioApi.Interfaces;
+using System.Diagnostics;
+using System.Runtime.InteropServices;
 using static AudioMultiCodecPlayer.Player;
 
 namespace AudioMultiCodecPlayer.Helper
@@ -21,7 +23,6 @@ namespace AudioMultiCodecPlayer.Helper
 
 
         LockableProperty<MMDevice> _mMdevice = new LockableProperty<MMDevice>(null!);
-        LockableProperty<AudioClient> _audioClient = new LockableProperty<AudioClient>(null!);
         ThreadManager _threadManager;
         MMDeviceEnumerator _deviceEnumerator;
         AudioSessionEventsHandler _audioSessionEventsHandler = new AudioSessionEventsHandler();
@@ -49,11 +50,6 @@ namespace AudioMultiCodecPlayer.Helper
 
                 _audioSessionEventsHandler.VolumeChanged += (v, m) => { if (lastvolume != v) { lastvolume = v; VolumeChange?.Invoke(v); } if (lastmute != m) { lastmute = m; MuteChange?.Invoke(m); } };
 
-
-                _deviceNotificationClient.DeviceStateChanged = (_, _) =>
-                {
-                    AudioClientUpdate();
-                };
             }
             finally
             {
@@ -63,27 +59,6 @@ namespace AudioMultiCodecPlayer.Helper
 
 
         public MMDevice MMDevice { get { StateCheckHelper(); return _mMdevice.Value; } }
-        public AudioClient AudioClient
-        { 
-            get
-            {
-                StateCheckHelper();
-                _audioClient.Lock(); try { return _audioClient.Value; } catch { AudioClientUpdate(); return _audioClient.Value; }
-            }
-        }
-
-        private void AudioClientUpdate()
-        {
-            _audioClient.Lock();
-            try
-            {
-                _audioClient.AccessValueWhileLocked = _mMdevice.Value.AudioClient;
-            }
-            finally
-            {
-                _audioClient.UnLock();
-            }
-        }
 
 
         PlayerAudioDeviceMode _audioDeviceMode;
@@ -149,7 +124,6 @@ namespace AudioMultiCodecPlayer.Helper
                         }
 
                         _mMdevice.AccessValueWhileLocked = newDevice;
-                        _audioClient.Value = _mMdevice.AccessValueWhileLocked.AudioClient;
 
                         _mMdevice.AccessValueWhileLocked.AudioSessionManager.AudioSessionControl.RegisterEventClient(_audioSessionEventsHandler);
 
