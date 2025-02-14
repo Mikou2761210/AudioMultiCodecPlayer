@@ -1,4 +1,4 @@
-The following text is written using a translation service. I apologize if there are any mistakes.
+The following text was translated using a translation service. Apologies for any mistakes.
 
 The only class the user needs to use is basically Player.  
   
