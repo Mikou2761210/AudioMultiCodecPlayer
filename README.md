@@ -1,4 +1,21 @@
-This repository was created to play the Opus codec.
-このリポジトリはOpusコーデックを再生するために作りました。
+The only class the user needs to use is basically Player.  
+  
+## How to Use Player  
+NewPlaying(filePath, playerMode, playbackState, position = null)  
+filePath: The music file to be played.  
+playerMode: Specifies the type of decoder to use.  
+playbackState and position: Define the state when playback starts.  
+  
+## Playback Control  
+You can switch the playback state using Play(), Pause(), and Stop().  
+  
+## Retrieving Playback Information  
+CurrentTime and CurrentSeconds: Get the current playback position.  
+TotleTime: Get the total playback duration.  
 
+## Audio Device Mode  
+Setting AudioDeviceMode to Auto will automatically change the audio device when the PC's default audio device changes.  
+Setting AudioDeviceMode to Manual will prevent automatic changes, but the functionality to retrieve and set the audio device has not yet been implemented.  
+
+## Note
 dependency:Naudio, Concentus, Concentus.Oggfile, MikouTools(https://github.com/Mikou2761210/MikouTools)
