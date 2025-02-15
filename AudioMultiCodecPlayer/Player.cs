@@ -17,7 +17,7 @@ namespace AudioMultiCodecPlayer
         {
             AudioFileReader, Opus
         }
-        internal enum PlayerState
+        public enum PlayerState
         {
             Uninitialized,
             None,
@@ -183,15 +183,8 @@ namespace AudioMultiCodecPlayer
         public void Skip(double seconds) => CurrentSeconds += seconds;
         public double CurrentSeconds
         {
-            get
-            {
-                double a = CurrentTime.TotalSeconds;
-                return a;
-            }
-            set
-            {
-                CurrentTime = TimeSpan.FromSeconds(value) ;
-            }
+            get => CurrentTime.TotalSeconds;
+            set=> CurrentTime = TimeSpan.FromSeconds(value);
         }
 
 
@@ -242,6 +235,8 @@ namespace AudioMultiCodecPlayer
         }
 
         LockableProperty<PlayerState> _state = new LockableProperty<PlayerState>(PlayerState.Uninitialized);
+
+        public PlayerState State => _state.Value;
         public void Dispose()
         {
             if (_state.SetAndReturnOld(PlayerState.Dispose) != PlayerState.Dispose)

@@ -161,7 +161,6 @@ namespace AudioMultiCodecPlayer.CustomWaveProvider
             }
         }
 
-        Stopwatch  stopwatch = Stopwatch.StartNew();
         public void RequestDecoding()
         {
             if(decodingThread == null || !decodingThread.IsAlive)
