@@ -1,4 +1,5 @@
-﻿using AudioMultiCodecPlayer.CustomWaveProvider;
+﻿using AudioMultiCodecPlayer.CustomNaudio;
+using AudioMultiCodecPlayer.CustomWaveProvider;
 using AudioMultiCodecPlayer.Helper;
 using MikouTools.UtilityTools.Threading;
 using NAudio.CoreAudioApi;
@@ -27,9 +28,9 @@ namespace AudioMultiCodecPlayer
 
     public partial class Player : IDisposable
     {
-        MikouTools.ThreadTools.ThreadManager threadManager = new MikouTools.ThreadTools.ThreadManager("Player",true, ApartmentState.MTA);
+        MikouTools.ThreadTools.ThreadManager _threadManager = new MikouTools.ThreadTools.ThreadManager("Player",true, ApartmentState.MTA);
 
-        internal WasapiOut? wasapiOut;
+        internal CustomNaudio.CustomWasapiOut? wasapiOut;
 
         public Action? AudioOpen;
         public Action? AudioEnd;
@@ -50,7 +51,7 @@ namespace AudioMultiCodecPlayer
             set
             {
                 StateCheckHelper();
-                threadManager.Invoke(() => 
+                _threadManager.Invoke(() => 
                 { 
                     lock (playbackStateLock) 
                     {
@@ -81,7 +82,7 @@ namespace AudioMultiCodecPlayer
 
         MMDeviceHelper _mMDeviceHelper;
 
-        MikouTools.ThreadTools.ThreadResourceManager threadResourceManager = new MikouTools.ThreadTools.ThreadResourceManager();
+        MikouTools.ThreadTools.ThreadResourceManager _threadResourceManager = new MikouTools.ThreadTools.ThreadResourceManager();
 
         public Player()
         {
@@ -93,9 +94,10 @@ namespace AudioMultiCodecPlayer
                 AppDomain.CurrentDomain.ProcessExit += OnProcessExit;
 
                 //Initialize
-                _mMDeviceHelper = new MMDeviceHelper(threadManager);
+                _mMDeviceHelper = new MMDeviceHelper(_threadManager);
 
-                threadResourceManager.CleanupTaskAdd(threadManager, threadManager.Dispose);
+                _threadResourceManager.CleanupTaskAdd(_threadManager, _threadManager.Dispose);
+
             }
             finally 
             { 
@@ -135,7 +137,7 @@ namespace AudioMultiCodecPlayer
         public void NewPlaying(string filePath, PlayerMode? playerMode, PlaybackState playbackState = PlaybackState.Playing, TimeSpan? position = null)
         {
             StateCheckHelper();
-            threadManager.Invoke(() => 
+            _threadManager.Invoke(() => 
             {
                 playbackState_ = PlaybackState.Stopped;
 
@@ -159,7 +161,7 @@ namespace AudioMultiCodecPlayer
                 if (position != null)
                     Provider.CurrentTime = (TimeSpan)position;
 
-                wasapiOut = new WasapiOut(_mMDeviceHelper.MMDevice, AudioClientShareMode.Shared, true, 200);
+                wasapiOut = new CustomNaudio.CustomWasapiOut(_mMDeviceHelper.MMDevice, AudioClientShareMode.Shared, true, 200);
                 wasapiOut.Init(Provider);
                 wasapiOut.PlaybackStopped += (s,e) => { if (_state.Value != PlayerState.Dispose && CurrentSeconds >= Provider.TotleTime.TotalSeconds) AudioEnd?.Invoke(); AudioStop?.Invoke(); };
                 playbackState_ = playbackState;
@@ -183,8 +185,19 @@ namespace AudioMultiCodecPlayer
         public void Skip(double seconds) => CurrentSeconds += seconds;
         public double CurrentSeconds
         {
-            get => CurrentTime.TotalSeconds;
-            set=> CurrentTime = TimeSpan.FromSeconds(value);
+            get
+            {
+                if (_state.Value != PlayerState.None || Provider == null) return 0;
+                double currentpadding = 0;
+                _threadManager.Invoke(() => { if (wasapiOut != null) currentpadding = wasapiOut.audioClient.CurrentPadding; });
+                //Debug.WriteLine($"{Provider.CurrentTime.TotalSeconds} - ({currentpadding} / {Provider.WaveFormat.SampleRate})({currentpadding / Provider.WaveFormat.SampleRate})");
+                return Provider.CurrentTime.TotalSeconds - (currentpadding / (double)Provider.WaveFormat.SampleRate);
+            }
+            set
+            {
+                if (_state.Value != PlayerState.None || Provider == null) return;
+                Provider.CurrentTime = TimeSpan.FromSeconds(value);
+            }
         }
 
 
@@ -192,15 +205,12 @@ namespace AudioMultiCodecPlayer
         {
             get
             {
-                StateCheckHelper();
-                if (Provider == null) return TimeSpan.Zero;
-                return Provider.CurrentTime;
+                return TimeSpan.FromSeconds(CurrentSeconds);
             }
             set
             {
-                StateCheckHelper();
-                if (Provider != null)
-                    Provider.CurrentTime = value;
+                if (_state.Value != PlayerState.None || Provider == null) return;
+                Provider.CurrentTime = value;
             }
         }
 
@@ -208,8 +218,7 @@ namespace AudioMultiCodecPlayer
         {
             get
             {
-                StateCheckHelper();
-                if (Provider == null) return TimeSpan.Zero;
+                if (_state.Value != PlayerState.None || Provider == null) return TimeSpan.Zero;
                 return Provider.TotleTime;
             }
         }
@@ -241,7 +250,7 @@ namespace AudioMultiCodecPlayer
         {
             if (_state.SetAndReturnOld(PlayerState.Dispose) != PlayerState.Dispose)
             {
-                threadManager.Dispose();
+                _threadManager.Dispose();
                 _mMDeviceHelper.Dispose();
                 wasapiOut?.Dispose();
                 AppDomain.CurrentDomain.ProcessExit -= OnProcessExit;

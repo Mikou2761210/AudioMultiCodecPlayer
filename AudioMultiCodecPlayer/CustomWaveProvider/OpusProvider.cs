@@ -31,13 +31,13 @@ namespace AudioMultiCodecPlayer.CustomWaveProvider
         public OpusProvider(string filename)
         {
             FileName = filename;
-            this.waveFormat = new WaveFormat(SampleRate, Channels);
+            this.waveFormat = new WaveFormat(SampleRate,16, Channels);
 
             opusStream = new FileStream(filename, FileMode.Open, FileAccess.Read);
             opusDecoder = OpusCodecFactory.CreateDecoder(SampleRate, Channels);
             opusOggRead = new OpusOggReadStream(opusDecoder, opusStream);
 
-            _secondsDataCount = (SampleRate * 2/*(16 / 8)*/ * Channels);
+            _secondsDataCount = this.waveFormat.AverageBytesPerSecond;
             tempAudioDataCapacty = _secondsDataCount * 3;
             DecodingThreshold = _secondsDataCount * 2;
             RequestDecoding();
@@ -95,7 +95,8 @@ namespace AudioMultiCodecPlayer.CustomWaveProvider
         {
             get
             {
-                return TimeSpan.FromSeconds(opusOggRead.CurrentTime.TotalSeconds - (tempAudioData.Count / _secondsDataCount)) ;
+                Debug.WriteLine($"{opusOggRead.CurrentTime.TotalSeconds} - {tempAudioData.Count / _secondsDataCount}");
+                return TimeSpan.FromSeconds(opusOggRead.CurrentTime.TotalSeconds - ((double)tempAudioData.Count / (double)_secondsDataCount)) ;
             }
             set
             {
