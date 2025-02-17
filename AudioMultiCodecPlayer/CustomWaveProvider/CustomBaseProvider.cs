@@ -6,7 +6,7 @@ namespace AudioMultiCodecPlayer.CustomWaveProvider
     {
 
 
-        internal TimeSpan TotleTime { get; }
+        internal TimeSpan TotalTime { get; }
 
         internal TimeSpan CurrentTime { get; set; }
 

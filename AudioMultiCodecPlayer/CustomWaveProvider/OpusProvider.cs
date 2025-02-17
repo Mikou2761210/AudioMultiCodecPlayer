@@ -20,7 +20,7 @@ namespace AudioMultiCodecPlayer.CustomWaveProvider
         readonly private object DecodingLock = new object();
 
         ThreadSafeList<byte> tempAudioData = new ThreadSafeList<byte>();
-        int tempAudioDataCapacty;
+        int tempAudioDataCapacity;
 
         int DecodingThreshold;
         readonly public int SampleRate = 48000;
@@ -38,7 +38,7 @@ namespace AudioMultiCodecPlayer.CustomWaveProvider
             opusOggRead = new OpusOggReadStream(opusDecoder, opusStream);
 
             _secondsDataCount = this.waveFormat.AverageBytesPerSecond;
-            tempAudioDataCapacty = _secondsDataCount * 3;
+            tempAudioDataCapacity = _secondsDataCount * 3;
             DecodingThreshold = _secondsDataCount * 2;
             RequestDecoding();
         }
@@ -56,9 +56,9 @@ namespace AudioMultiCodecPlayer.CustomWaveProvider
         {
             lock (bufferLock)
             {
-                if(tempAudioDataCapacty < count)
+                if(tempAudioDataCapacity < count)
                 {
-                    tempAudioDataCapacty = count;
+                    tempAudioDataCapacity = count;
                     tempAudioData.Capacity = count;
                 }
 
@@ -90,12 +90,11 @@ namespace AudioMultiCodecPlayer.CustomWaveProvider
 
         //TimeSpan CustomBaseProvider.TotleTime => opusOggRead.TotalTime;
 
-        public TimeSpan TotleTime => opusOggRead.TotalTime;
+        public TimeSpan TotalTime => opusOggRead.TotalTime;
         public TimeSpan CurrentTime
         {
             get
             {
-                Debug.WriteLine($"{opusOggRead.CurrentTime.TotalSeconds} - {tempAudioData.Count / _secondsDataCount}");
                 return TimeSpan.FromSeconds(opusOggRead.CurrentTime.TotalSeconds - ((double)tempAudioData.Count / (double)_secondsDataCount)) ;
             }
             set
@@ -139,7 +138,7 @@ namespace AudioMultiCodecPlayer.CustomWaveProvider
                     {
                         lock (DecodingLock)
                         {
-                            while (opusOggRead.HasNextPacket && tempAudioData.Count <= tempAudioDataCapacty)
+                            while (opusOggRead.HasNextPacket && tempAudioData.Count <= tempAudioDataCapacity)
                             {
                                 short[] packet = opusOggRead.DecodeNextPacket();
                                 if (packet != null)

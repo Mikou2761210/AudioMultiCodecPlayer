@@ -64,7 +64,7 @@ namespace AudioMultiCodecPlayer.CustomWaveProvider
             }
         }
 
-        TimeSpan CustomBaseProvider.TotleTime { get { return base.TotalTime; } }
+        TimeSpan CustomBaseProvider.TotalTime { get { return base.TotalTime; } }
 
         //
         // 概要:

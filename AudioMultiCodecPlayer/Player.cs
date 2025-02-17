@@ -163,7 +163,7 @@ namespace AudioMultiCodecPlayer
 
                 wasapiOut = new CustomNaudio.CustomWasapiOut(_mMDeviceHelper.MMDevice, AudioClientShareMode.Shared, true, 200);
                 wasapiOut.Init(Provider);
-                wasapiOut.PlaybackStopped += (s,e) => { if (_state.Value != PlayerState.Dispose && CurrentSeconds >= Provider.TotleTime.TotalSeconds) AudioEnd?.Invoke(); AudioStop?.Invoke(); };
+                wasapiOut.PlaybackStopped += (s,e) => { if (_state.Value != PlayerState.Dispose && CurrentSeconds >= Provider.TotalTime.TotalSeconds) AudioEnd?.Invoke(); AudioStop?.Invoke(); };
                 playbackState_ = playbackState;
                 switch (playbackState)
                 {
@@ -190,7 +190,6 @@ namespace AudioMultiCodecPlayer
                 if (_state.Value != PlayerState.None || Provider == null) return 0;
                 double currentpadding = 0;
                 _threadManager.Invoke(() => { if (wasapiOut != null) currentpadding = wasapiOut.audioClient.CurrentPadding; });
-                //Debug.WriteLine($"{Provider.CurrentTime.TotalSeconds} - ({currentpadding} / {Provider.WaveFormat.SampleRate})({currentpadding / Provider.WaveFormat.SampleRate})");
                 return Provider.CurrentTime.TotalSeconds - (currentpadding / (double)Provider.WaveFormat.SampleRate);
             }
             set
@@ -219,7 +218,7 @@ namespace AudioMultiCodecPlayer
             get
             {
                 if (_state.Value != PlayerState.None || Provider == null) return TimeSpan.Zero;
-                return Provider.TotleTime;
+                return Provider.TotalTime;
             }
         }
 
