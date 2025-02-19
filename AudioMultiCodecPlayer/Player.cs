@@ -134,9 +134,10 @@ namespace AudioMultiCodecPlayer
 
 
         // PlayerMode CurrentPlayerMode;
-        public void NewPlaying(string filePath, PlayerMode? playerMode, PlaybackState playbackState = PlaybackState.Playing, TimeSpan? position = null)
+        public Exception? NewPlaying(string filePath, PlayerMode? playerMode, PlaybackState playbackState = PlaybackState.Playing, TimeSpan? position = null)
         {
             StateCheckHelper();
+            Exception? result = null;
             _threadManager.Invoke(() => 
             {
                 playbackState_ = PlaybackState.Stopped;
@@ -146,24 +147,39 @@ namespace AudioMultiCodecPlayer
                 Provider?.Dispose();
                 Provider = null;
                 if (playbackState == PlaybackState.Stopped) return;
-                switch (playerMode)
-                {
-                    case PlayerMode.AudioFileReader:
-                        Provider = new CustomAudioFileReader(filePath);
-                        break;
-                    case PlayerMode.Opus:
-                        Provider = new OpusProvider(filePath);
-                        break;
 
-                    default: return;
+                try
+                {
+                    switch (playerMode)
+                    {
+                        case PlayerMode.AudioFileReader:
+                            Provider = new CustomAudioFileReader(filePath);
+                            break;
+                        case PlayerMode.Opus:
+                            Provider = new OpusProvider(filePath);
+                            break;
+
+                        default: return;
+                    }
+                    if (position != null && ((TimeSpan)position).TotalSeconds > 0)
+                        Provider.CurrentTime = (TimeSpan)position;
+
+                    wasapiOut = new CustomNaudio.CustomWasapiOut(_mMDeviceHelper.MMDevice, AudioClientShareMode.Shared, true, 200);
+                    wasapiOut.Init(Provider);
+                    wasapiOut.PlaybackStopped += (s, e) => { if (_state.Value != PlayerState.Dispose && CurrentSeconds >= Provider.TotalTime.TotalSeconds) AudioEnd?.Invoke(); AudioStop?.Invoke(); };
+
+                }
+                catch(Exception ex)
+                {
+                    result = ex;
+                    wasapiOut?.Stop();
+                    wasapiOut?.Dispose();
+                    wasapiOut = null;
+                    Provider?.Dispose();
+                    Provider = null;
+                    return;
                 }
 
-                if (position != null)
-                    Provider.CurrentTime = (TimeSpan)position;
-
-                wasapiOut = new CustomNaudio.CustomWasapiOut(_mMDeviceHelper.MMDevice, AudioClientShareMode.Shared, true, 200);
-                wasapiOut.Init(Provider);
-                wasapiOut.PlaybackStopped += (s,e) => { if (_state.Value != PlayerState.Dispose && CurrentSeconds >= Provider.TotalTime.TotalSeconds) AudioEnd?.Invoke(); AudioStop?.Invoke(); };
                 playbackState_ = playbackState;
                 switch (playbackState)
                 {
@@ -174,9 +190,10 @@ namespace AudioMultiCodecPlayer
                         wasapiOut.Pause();
                         break;
                 }
-
             });
-            AudioOpen?.Invoke();
+            if (result == null)
+                AudioOpen?.Invoke();
+            return result;
         }
 
         public void Play() => PlaybackState = PlaybackState.Playing;
