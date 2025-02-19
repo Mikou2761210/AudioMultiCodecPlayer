@@ -80,7 +80,6 @@ namespace AudioMultiCodecPlayer.Helper
 
                                 if ((DataFlow)dataflow == DataFlow.Render && (Role)role == Role.Multimedia)
                                 {
-                                    Debug.WriteLine(id);
                                     DeviceChanged(id);
                                 }
                             };
