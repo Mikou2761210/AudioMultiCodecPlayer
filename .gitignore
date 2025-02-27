@@ -3,3 +3,5 @@
 ################################################################################
 
 /.vs
+/AudioMultiCodecPlayer/obj
+/AudioMultiCodecPlayer/bin/Debug/net8.0
