@@ -1,6 +1,7 @@
 ﻿using Concentus;
 using Concentus.Oggfile;
-using MikouTools.CollectionTools.ThreadSafeCollections;
+using Concentus.Structs;
+using MikouTools.Thread.ThreadSafe.Collections;
 using NAudio.Wave;
 using System.Diagnostics;
 
@@ -12,20 +13,20 @@ namespace AudioMultiCodecPlayer.CustomWaveProvider
 
         private readonly WaveFormat waveFormat;
 
-        readonly FileStream opusStream;
-        private readonly IOpusDecoder opusDecoder;
-        private readonly OpusOggReadStream opusOggRead;
+        private FileStream opusStream;
+        private IOpusDecoder opusDecoder;
+        private OpusOggReadStream opusOggRead;
 
 
-        readonly private object DecodingLock = new object();
+        //readonly private object DecodingLock = new object();
 
-        ThreadSafeList<byte> tempAudioData = new ThreadSafeList<byte>();
+        ThreadSafeList<List<byte>,byte> tempAudioData = new ThreadSafeList<List<byte>, byte>([]);
         int tempAudioDataCapacity;
 
         int DecodingThreshold;
         readonly public int SampleRate = 48000;
         readonly public int Channels = 2;
-        int _secondsDataCount;
+        //int _secondsDataCount;
 
 
         public OpusProvider(string filename)
@@ -37,9 +38,9 @@ namespace AudioMultiCodecPlayer.CustomWaveProvider
             opusDecoder = OpusCodecFactory.CreateDecoder(SampleRate, Channels);
             opusOggRead = new OpusOggReadStream(opusDecoder, opusStream);
 
-            _secondsDataCount = this.waveFormat.AverageBytesPerSecond;
-            tempAudioDataCapacity = _secondsDataCount * 3;
-            DecodingThreshold = _secondsDataCount * 2;
+            //_secondsDataCount = this.waveFormat.AverageBytesPerSecond;
+            tempAudioDataCapacity = this.waveFormat.AverageBytesPerSecond * 3;
+            DecodingThreshold = this.waveFormat.AverageBytesPerSecond * 2;
             RequestDecoding();
         }
 
@@ -51,6 +52,7 @@ namespace AudioMultiCodecPlayer.CustomWaveProvider
         public WaveFormat WaveFormat => waveFormat;
 
         readonly object bufferLock = new object();
+        bool _resetFlag = false;
 
         public int Read(byte[] outputBuffer, int offset, int count)
         {
@@ -82,6 +84,7 @@ namespace AudioMultiCodecPlayer.CustomWaveProvider
 
                 tempAudioData.RemoveRange(0, count);
 
+
                 return count;
             }
         }
@@ -91,11 +94,17 @@ namespace AudioMultiCodecPlayer.CustomWaveProvider
         //TimeSpan CustomBaseProvider.TotleTime => opusOggRead.TotalTime;
 
         public TimeSpan TotalTime => opusOggRead.TotalTime;
+        readonly object _currentTimeLock = new object();
         public TimeSpan CurrentTime
         {
             get
             {
-                return TimeSpan.FromSeconds(opusOggRead.CurrentTime.TotalSeconds - ((double)tempAudioData.Count / (double)_secondsDataCount)) ;
+                lock (_currentTimeLock)
+                {
+
+                    
+                    return TimeSpan.FromSeconds(opusOggRead.CurrentTime.TotalSeconds - ((double)tempAudioData.Count / (double)this.waveFormat.AverageBytesPerSecond));
+                }
             }
             set
             {
@@ -105,6 +114,14 @@ namespace AudioMultiCodecPlayer.CustomWaveProvider
                         value = opusOggRead.TotalTime;
                     if (value.TotalSeconds <= 0)
                         value = TimeSpan.FromMilliseconds(1);
+
+                    if (_resetFlag)
+                    {
+                        _resetFlag = false;
+                        opusDecoder.ResetState();
+                        opusOggRead = new OpusOggReadStream(opusDecoder, opusStream);
+                        //opusOggRead.SeekTo(TimeSpan.FromMilliseconds(1));
+                    }
                     opusOggRead.SeekTo(value);
                     tempAudioData.Clear();
                     RequestDecoding();
@@ -136,26 +153,37 @@ namespace AudioMultiCodecPlayer.CustomWaveProvider
                 {
                     while (decodingThreadRunning)
                     {
-                        lock (DecodingLock)
+                        //lock (DecodingLock)
                         {
-                            while (opusOggRead.HasNextPacket && tempAudioData.Count <= tempAudioDataCapacity)
+
+                            while (tempAudioData.Count <= tempAudioDataCapacity)
                             {
-                                short[] packet = opusOggRead.DecodeNextPacket();
-                                if (packet != null)
+                                if (!opusOggRead.HasNextPacket)
                                 {
-                                    byte[] packetBytes = new byte[packet.Length * 2];
-                                    Buffer.BlockCopy(packet, 0, packetBytes, 0, packetBytes.Length);
-                                    tempAudioData.AddRange(packetBytes);
+                                    _resetFlag = true;
+                                    break;
                                 }
-                                else
+                                lock (_currentTimeLock)
                                 {
-                                    Debug.WriteLine("DecodeNextPacket returned null.");
+                                    short[] packet = opusOggRead.DecodeNextPacket();
+                                    if (packet != null)
+                                    {
+                                        byte[] packetBytes = new byte[packet.Length * 2];
+                                        Buffer.BlockCopy(packet, 0, packetBytes, 0, packetBytes.Length);
+                                        tempAudioData.AddRange(packetBytes);
+                                    }
+                                    else
+                                    {
+                                        Debug.WriteLine("DecodeNextPacket returned null.");
+                                    }
                                 }
+
                             }
                         }
                         decodingEvent.WaitOne();
                     }
-                });
+                })
+                { Name = "DecodingThread" };
                 decodingThread.IsBackground = true;
                 decodingThread.Start();
             }

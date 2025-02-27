@@ -1,7 +1,9 @@
 ﻿using AudioMultiCodecPlayer.CustomNaudio;
 using AudioMultiCodecPlayer.CustomWaveProvider;
 using AudioMultiCodecPlayer.Helper;
-using MikouTools.UtilityTools.Threading;
+using MikouTools.Thread.Specialized;
+using MikouTools.Thread.Utils;
+using MikouTools.ThreadTools.MikouTools.ThreadTools;
 using NAudio.CoreAudioApi;
 using NAudio.Wave;
 using System.Diagnostics;
@@ -28,16 +30,16 @@ namespace AudioMultiCodecPlayer
 
     public partial class Player : IDisposable
     {
-        MikouTools.ThreadTools.ThreadManager _threadManager = new MikouTools.ThreadTools.ThreadManager("Player",true, ApartmentState.MTA);
+        ThreadManager _threadManager = new("Player",true, ApartmentState.MTA);
 
         internal CustomNaudio.CustomWasapiOut? wasapiOut;
 
         public Action? AudioOpen;
         public Action? AudioEnd;
-        public Action? AudioStop;
+
         public Action<string>? Error;
 
-        public Action? PlaybackStateChange;
+        public Action<PlaybackState>? PlaybackStateChange;
         PlaybackState _playbackState;
         readonly object playbackStateLock = new object();
         public PlaybackState PlaybackState
@@ -51,27 +53,36 @@ namespace AudioMultiCodecPlayer
             set
             {
                 StateCheckHelper();
-                _threadManager.Invoke(() => 
-                { 
-                    lock (playbackStateLock) 
+                bool _playbackStateChange = false;
+                _threadManager.Invoke(() =>
+                {
+                    lock (playbackStateLock)
                     {
-                        _playbackState = value;
-                        switch (value)
+                        if (_playbackState != value)
                         {
-                            case PlaybackState.Playing:
-                                wasapiOut?.Play();
-                                break;
-                            case PlaybackState.Paused:
-                                wasapiOut?.Pause();
-                                break;
-                            case PlaybackState.Stopped:
-                                wasapiOut?.Stop();
-                                Provider?.Dispose();
-                                Provider = null;
-                                break;
+                            _playbackStateChange = true;
+                            _playbackState = value;
+                            switch (value)
+                            {
+                                case PlaybackState.Playing:
+                                    wasapiOut?.Play();
+                                    break;
+                                case PlaybackState.Paused:
+                                    wasapiOut?.Pause();
+                                    break;
+                                case PlaybackState.Stopped:
+                                    wasapiOut?.Stop();
+                                    Provider?.Dispose();
+                                    Provider = null;
+                                    break;
+                            }
                         }
-                    } 
+                    }
                 });
+                if (_playbackStateChange)
+                {
+                    PlaybackStateChange?.Invoke(value);
+                }
             }
         }
 
@@ -82,11 +93,11 @@ namespace AudioMultiCodecPlayer
 
         MMDeviceHelper _mMDeviceHelper;
 
-        MikouTools.ThreadTools.ThreadResourceManager _threadResourceManager = new MikouTools.ThreadTools.ThreadResourceManager();
+        ThreadResourceManager _threadResourceManager = new();
 
         public Player()
         {
-            _state.Lock();
+            _state.EnterLock();
             try
             {
 
@@ -96,7 +107,7 @@ namespace AudioMultiCodecPlayer
                 //Initialize
                 _mMDeviceHelper = new MMDeviceHelper(_threadManager);
                 _mMDeviceHelper.MMDeviceChangeStart += () => {
-                    _state.Lock();
+                    _state.EnterLock();
                     if (_playbackState != PlaybackState.Stopped)
                     {
                         try
@@ -110,13 +121,13 @@ namespace AudioMultiCodecPlayer
                         }
                         catch(Exception ex)
                         {
-                            _state.UnLock();
+                            _state.ExitLock();
                             throw ex;
                         }
                     }
                     else
                     {
-                        _state.UnLock();
+                        _state.ExitLock();
                     }
                 };
                 _mMDeviceHelper.MMDeviceChangeEnd += () => {
@@ -142,7 +153,7 @@ namespace AudioMultiCodecPlayer
                         }
                         finally
                         {
-                            _state.UnLock();
+                            _state.ExitLock();
                         }
 
                     }
@@ -153,7 +164,7 @@ namespace AudioMultiCodecPlayer
             finally 
             { 
                 _state.AccessValueWhileLocked = PlayerState.None;
-                _state.UnLock();
+                _state.ExitLock();
             }
         }
 
@@ -243,14 +254,23 @@ namespace AudioMultiCodecPlayer
                 }
             });
             if (result == null)
+            {
                 AudioOpen?.Invoke();
+                PlaybackStateChange?.Invoke(playbackState);
+            }
             return result;
         }
 
         private void PlaybackStopped(object? s,StoppedEventArgs stoppedEventArgs)
         {
-            AudioStop?.Invoke();
-            if (_state.Value != PlayerState.Dispose && Provider != null && CurrentSeconds >= Provider.TotalTime.TotalSeconds) AudioEnd?.Invoke();
+            bool audioEnd = Provider != null && (CurrentSeconds >= Provider.TotalTime.TotalSeconds);
+
+            if (_state.Value != PlayerState.Dispose) PlaybackState = PlaybackState.Paused;
+            if (audioEnd)
+                System.Threading.ThreadPool.QueueUserWorkItem((s) =>
+                {
+                    AudioEnd?.Invoke();
+                });
         }
 
         public void Play() => PlaybackState = PlaybackState.Playing;
@@ -263,34 +283,62 @@ namespace AudioMultiCodecPlayer
         {
             get
             {
-                if (_state.Value != PlayerState.None || Provider == null) return 0;
-                double currentpadding = 0;
-                if (_audioClientCache == null && wasapiOut != null)
-                    _threadManager.Invoke(() => { _audioClientCache = wasapiOut.audioClient; });
-                if (_audioClientCache == null) return Provider.CurrentTime.TotalSeconds;
+                if (_state.Value != PlayerState.None || Provider == null)
+                    return 0;
 
-                Exception? exception = _threadManager.Invoke(() => { currentpadding = _audioClientCache.CurrentPadding; });
+                EnsureAudioClient();
 
-                if(exception != null)
-                {
-                    Debug.WriteLine("Re-acquire AudioClient");
-                    if (_audioClientCache == null && wasapiOut != null)
-                        _threadManager.Invoke(() => {
-                            _audioClientCache = wasapiOut.audioClient;
-                            if (_audioClientCache == null)
-                                currentpadding = 0;
-                            else
-                                currentpadding = _audioClientCache.CurrentPadding;
-                        });
-                }
-                return Provider.CurrentTime.TotalSeconds - (currentpadding / (double)Provider.WaveFormat.SampleRate);
+                double currentPadding = GetCurrentPaddingSafely();
+return Provider.CurrentTime.TotalSeconds - (currentPadding / (double)Provider.WaveFormat.SampleRate);
             }
             set
             {
-                if (_state.Value != PlayerState.None || Provider == null) return;
+                if (_state.Value != PlayerState.None || Provider == null)
+                    return;
                 Provider.CurrentTime = TimeSpan.FromSeconds(value);
             }
         }
+
+        /// <summary>
+        /// AudioClientの取得・再取得を行う
+        /// </summary>
+        private void EnsureAudioClient()
+        {
+            if (_audioClientCache == null && wasapiOut != null)
+            {
+                _threadManager.Invoke(() =>
+                {
+                    _audioClientCache = wasapiOut.audioClient;
+                });
+            }
+        }
+
+        /// <summary>
+        /// 現在のpadding値を安全に取得する。失敗時は再取得を試み、失敗すれば0を返す。
+        /// </summary>
+        private double GetCurrentPaddingSafely()
+        {
+            double padding = 0; 
+            Exception? result = _threadManager.Invoke(() =>
+            {
+                padding = _audioClientCache?.CurrentPadding ?? 0;
+            });
+            if(result != null)
+            {
+                Debug.WriteLine("CurrentPadding Error: " + result.Message);
+
+                if (wasapiOut != null)
+                {
+                    _threadManager.Invoke(() =>
+                    {
+                        _audioClientCache = wasapiOut.audioClient;
+                        padding = _audioClientCache?.CurrentPadding ?? 0;
+                    });
+                }
+            }
+            return padding;
+        }
+
 
 
         public TimeSpan CurrentTime

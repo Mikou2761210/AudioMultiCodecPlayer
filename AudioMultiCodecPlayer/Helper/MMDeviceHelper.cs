@@ -1,5 +1,6 @@
-﻿using MikouTools.ThreadTools;
-using MikouTools.UtilityTools.Threading;
+﻿using MikouTools.Thread.Specialized;
+using MikouTools.Thread.Utils;
+using MikouTools.ThreadTools;
 using NAudio.CoreAudioApi;
 using NAudio.CoreAudioApi.Interfaces;
 using System.Diagnostics;
@@ -29,7 +30,7 @@ namespace AudioMultiCodecPlayer.Helper
         DeviceNotificationClient _deviceNotificationClient = new DeviceNotificationClient();
         public MMDeviceHelper(ThreadManager threadManager)
         {
-            _state.Lock();
+            _state.EnterLock();
             try
             {
                 _threadManager = threadManager;
@@ -53,7 +54,7 @@ namespace AudioMultiCodecPlayer.Helper
             }
             finally
             {
-                _state.UnLock();
+                _state.ExitLock();
             }
         }
 
@@ -115,7 +116,7 @@ namespace AudioMultiCodecPlayer.Helper
 
 
                     MMDeviceChangeStart?.Invoke();
-                    _mMdevice.Lock();
+                    _mMdevice.EnterLock();
                     try
                     {
                         if (_mMdevice.AccessValueWhileLocked != null)
@@ -131,7 +132,7 @@ namespace AudioMultiCodecPlayer.Helper
                     }
                     finally 
                     {
-                        _mMdevice.UnLock();
+                        _mMdevice.ExitLock();
                         MMDeviceChangeEnd?.Invoke();
                     }
                 }
