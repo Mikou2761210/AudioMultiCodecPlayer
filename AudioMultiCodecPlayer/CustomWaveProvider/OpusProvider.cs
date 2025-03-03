@@ -264,6 +264,7 @@ namespace AudioMultiCodecPlayer.CustomWaveProvider
 
         readonly object bufferLock = new();
         bool _resetFlag = false;
+        double _currentSeconds = 0;
 
         public int Read(byte[] outputBuffer, int offset, int count)
         {
@@ -296,8 +297,7 @@ namespace AudioMultiCodecPlayer.CustomWaveProvider
                 {
                     outputBuffer[offset + i] = tempAudioData.Dequeue();
                 }
-                Debug.WriteLine($"return:{count}");
-
+                _currentSeconds += count / (double)this.waveFormat.AverageBytesPerSecond;
                 return count;
             }
         }
@@ -307,17 +307,13 @@ namespace AudioMultiCodecPlayer.CustomWaveProvider
         //TimeSpan CustomBaseProvider.TotleTime => opusOggRead.TotalTime;
 
         public TimeSpan TotalTime => opusOggRead.TotalTime;
-        readonly object _currentTimeLock = new object();
         public TimeSpan CurrentTime
         {
             get
             {
-                lock (_currentTimeLock)
-                {
+                return TimeSpan.FromSeconds(_currentSeconds);
 
-
-                    return TimeSpan.FromSeconds(opusOggRead.CurrentTime.TotalSeconds - ((double)tempAudioData.Count / (double)this.waveFormat.AverageBytesPerSecond));
-                }
+                //return TimeSpan.FromSeconds(opusOggRead.CurrentTime.TotalSeconds - ((double)tempAudioData.Count / (double)this.waveFormat.AverageBytesPerSecond));
             }
             set
             {
@@ -328,7 +324,7 @@ namespace AudioMultiCodecPlayer.CustomWaveProvider
                     if (value.TotalSeconds <= 0)
                         value = TimeSpan.FromMilliseconds(1);
 
-                    
+                    _currentSeconds = value.TotalSeconds;
                     if (_resetFlag)
                     {
                         _resetFlag = false;
@@ -347,7 +343,6 @@ namespace AudioMultiCodecPlayer.CustomWaveProvider
                 }
             }
         }
-
 
         public void Seek(double Seconds) => Seek(TimeSpan.FromSeconds(Seconds));
 
@@ -378,21 +373,18 @@ namespace AudioMultiCodecPlayer.CustomWaveProvider
                         }
                         else
                         {
-                            lock (_currentTimeLock)
+                            short[] packet = opusOggRead.DecodeNextPacket();
+                            if (packet != null)
                             {
-                                short[] packet = opusOggRead.DecodeNextPacket();
-                                if (packet != null)
-                                {
-                                    byte[] packetBytes = new byte[packet.Length * 2];
-                                    Buffer.BlockCopy(packet, 0, packetBytes, 0, packetBytes.Length);
+                                byte[] packetBytes = new byte[packet.Length * 2];
+                                Buffer.BlockCopy(packet, 0, packetBytes, 0, packetBytes.Length);
 
-                                    foreach (byte packetByte in packetBytes)
-                                        tempAudioData.Enqueue(packetByte);
-                                }
-                                else
-                                {
-                                    Debug.WriteLine("DecodeNextPacket returned null.");
-                                }
+                                foreach (byte packetByte in packetBytes)
+                                    tempAudioData.Enqueue(packetByte);
+                            }
+                            else
+                            {
+                                Debug.WriteLine("DecodeNextPacket returned null.");
                             }
                         }
                         tempAudioData.CountCheckAndWait();

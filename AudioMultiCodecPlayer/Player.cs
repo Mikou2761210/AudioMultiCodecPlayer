@@ -253,12 +253,11 @@ namespace AudioMultiCodecPlayer
         private void PlaybackStopped(object? s,StoppedEventArgs stoppedEventArgs)
         {
             _playbackState.Value = PlaybackState.Stopped;
-            Task.Run(() => {
-                bool audioEnd = Provider != null && (CurrentSeconds >= Provider.TotalTime.TotalSeconds);
+            bool audioEnd = Provider != null && (CurrentSeconds >= Provider.TotalTime.TotalSeconds);
 
-                if (_state.Value != PlayerState.Dispose) PlaybackState = PlaybackState.Paused;
-                if (audioEnd) AudioEnd?.Invoke();
-            });
+            if (_state.Value != PlayerState.Dispose) { _playbackState.Value  = PlaybackState.Paused; wasapiOut?.Pause(); }
+            if (audioEnd)
+                Task.Run(() => { AudioEnd?.Invoke(); });
         }
 
         public void Play() => PlaybackState = PlaybackState.Playing;
