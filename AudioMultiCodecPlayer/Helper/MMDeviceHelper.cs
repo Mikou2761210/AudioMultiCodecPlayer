@@ -30,8 +30,7 @@ namespace AudioMultiCodecPlayer.Helper
         DeviceNotificationClient _deviceNotificationClient = new DeviceNotificationClient();
         public MMDeviceHelper(ThreadManager threadManager)
         {
-            _state.EnterLock();
-            try
+            using (var handle = _state.LockAndGetValue())
             {
                 _threadManager = threadManager;
 
@@ -42,7 +41,7 @@ namespace AudioMultiCodecPlayer.Helper
                 });
 
                 if (_deviceEnumerator == null) throw new NullReferenceException(nameof(_deviceEnumerator));
-                _state.AccessValueWhileLocked = MMDeviceHelperState.None;
+                handle.Value = MMDeviceHelperState.None;
                 AudioDeviceMode = PlayerAudioDeviceMode.Auto;
 
 
@@ -51,10 +50,6 @@ namespace AudioMultiCodecPlayer.Helper
 
                 _audioSessionEventsHandler.VolumeChanged += (v, m) => { if (lastvolume != v) { lastvolume = v; VolumeChange?.Invoke(v); } if (lastmute != m) { lastmute = m; MuteChange?.Invoke(m); } };
 
-            }
-            finally
-            {
-                _state.ExitLock();
             }
         }
 
@@ -116,23 +111,18 @@ namespace AudioMultiCodecPlayer.Helper
 
 
                     MMDeviceChangeStart?.Invoke();
-                    _mMdevice.EnterLock();
-                    try
+                    using (var handle = _mMdevice.LockAndGetValue())
                     {
-                        if (_mMdevice.AccessValueWhileLocked != null)
+                        if (handle.Value != null)
                         {
-                            _mMdevice.AccessValueWhileLocked.AudioSessionManager.AudioSessionControl.UnRegisterEventClient(_audioSessionEventsHandler);
-                            _mMdevice.AccessValueWhileLocked.Dispose();
+                            handle.Value.AudioSessionManager.AudioSessionControl.UnRegisterEventClient(_audioSessionEventsHandler);
+                            handle.Value.Dispose();
                         }
 
-                        _mMdevice.AccessValueWhileLocked = newDevice;
+                        handle.Value = newDevice;
 
-                        _mMdevice.AccessValueWhileLocked.AudioSessionManager.AudioSessionControl.RegisterEventClient(_audioSessionEventsHandler);
-
-                    }
-                    finally 
-                    {
-                        _mMdevice.ExitLock();
+                        handle.Value.AudioSessionManager.AudioSessionControl.RegisterEventClient(_audioSessionEventsHandler);
+                        
                         MMDeviceChangeEnd?.Invoke();
                     }
                 }
