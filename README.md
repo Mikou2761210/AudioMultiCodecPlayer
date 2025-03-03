@@ -1,9 +1,9 @@
 The following text has been translated using a translation service. I apologize for any errors.
-
-
-The program structure is messy, making error identification difficult. It lacks scalability and flexibility, and as such, maintenance is challenging. Use is not recommended.
-
-
+  
+  
+The program structure is messy, making error identification difficult. It lacks scalability and flexibility, and as such, maintenance is challenging. Use is not recommended.  
+  
+  
 The only class the user needs to use is basically Player.  
   
 ## How to Use Player  
